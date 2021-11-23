@@ -23,6 +23,7 @@ public class SecurityService {
     private ImageService imageService;
     private SecurityRepository securityRepository;
     private Set<StatusListener> statusListeners = new HashSet<>();
+    private boolean hasCat = false;
 
     public SecurityService(SecurityRepository securityRepository, ImageService imageService) {
         this.securityRepository = securityRepository;
@@ -38,10 +39,25 @@ public class SecurityService {
         if(armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
-        else if(armingStatus == ArmingStatus.ARMED_AWAY || armingStatus == ArmingStatus.ARMED_HOME) {   //added for requirement 10
-            securityRepository.deactivateAllSensor();
+        else if (getArmingStatus() == ArmingStatus.DISARMED) {
+            if (armingStatus == ArmingStatus.ARMED_AWAY || armingStatus == ArmingStatus.ARMED_HOME) {   //added for requirement 10
+                if (hasCat) {
+                    securityRepository.setArmingStatus(armingStatus);       //added for requirement 11
+                    catDetected(hasCat);
+                    return;
+                }
+                deactivateAllSensor();
+
+            }
         }
         securityRepository.setArmingStatus(armingStatus);
+    }
+
+    private void deactivateAllSensor() {     //requirement 10
+        for (Sensor s: securityRepository.getSensors()){
+            s.setActive(false);
+        }
+        statusListeners.forEach(StatusListener::sensorStatusChanged);
     }
 
 
@@ -51,13 +67,25 @@ public class SecurityService {
      * @param cat True if a cat is detected, otherwise false.
      */
     private void catDetected(Boolean cat) {
+        hasCat = cat;      //requirement 11
         if(cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
-        } else {
-            setAlarmStatus(AlarmStatus.NO_ALARM);
+        }
+        else {
+            if (allSensorDeactivated())         //requirement 8
+                setAlarmStatus(AlarmStatus.NO_ALARM);
         }
 
         statusListeners.forEach(sl -> sl.catDetected(cat));
+    }
+
+    private boolean allSensorDeactivated(){    //added for requirement 8
+        for(Sensor s : getSensors()){
+            if (s.getActive()){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -98,7 +126,7 @@ public class SecurityService {
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
     private void handleSensorDeactivated() {
-        switch(securityRepository.getAlarmStatus()) {
+        switch (securityRepository.getAlarmStatus()) {
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
         }
@@ -113,12 +141,30 @@ public class SecurityService {
         if(!sensor.getActive() && active) {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
-            handleSensorDeactivated();
+            if (getAlarmStatus().equals(AlarmStatus.ALARM)) {            //added for requirement 4
+                if (allSensorDeactivated(sensor))
+                    handleSensorDeactivated();
+            }
+            else {
+                handleSensorDeactivated();
+            }
         } else if (sensor.getActive() && active) {                    //added for requirement 5
             handleSensorActivated();
         }
         sensor.setActive(active);
         securityRepository.updateSensor(sensor);
+
+    }
+
+    private boolean allSensorDeactivated(Sensor sensor){
+        for (Sensor s: securityRepository.getSensors()){
+            if (sensor.compareTo(s)!=0) {
+                if (s.getActive()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**

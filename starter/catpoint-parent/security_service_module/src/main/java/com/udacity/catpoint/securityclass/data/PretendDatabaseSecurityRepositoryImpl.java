@@ -63,12 +63,6 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
         prefs.put(SENSORS, gson.toJson(sensors));
     }
 
-    //requirement 10
-    @Override
-    public void deactivateAllSensor() {
-        sensors.forEach(sensor -> sensor.setActive(false));
-    }
-
 
     @Override
     public void setAlarmStatus(AlarmStatus alarmStatus) {

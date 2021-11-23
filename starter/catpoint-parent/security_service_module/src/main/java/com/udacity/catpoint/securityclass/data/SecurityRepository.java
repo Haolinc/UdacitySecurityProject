@@ -1,7 +1,5 @@
 package com.udacity.catpoint.securityclass.data;
 
-import com.udacity.catpoint.securityclass.application.StatusListener;
-
 import java.util.Set;
 
 /**
@@ -13,7 +11,6 @@ public interface SecurityRepository {
     void updateSensor(Sensor sensor);
     void setAlarmStatus(AlarmStatus alarmStatus);
     void setArmingStatus(ArmingStatus armingStatus);
-    void deactivateAllSensor();   //requirement 10
     Set<Sensor> getSensors();
     AlarmStatus getAlarmStatus();
     ArmingStatus getArmingStatus();
