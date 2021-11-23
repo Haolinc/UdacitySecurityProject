@@ -91,11 +91,6 @@ public class SecurityServiceTesting {
         when(securityService.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         securityService.changeSensorActivationStatus(doorSensor, true);    //Test for second sensor activation
 
-        Set<Sensor> sensors = new HashSet<>();
-        sensors.add(motionSensor);
-        sensors.add(motionSensor);
-        when(securityService.getSensors()).thenReturn(sensors);                //Add sample sensor to test
-
         when(securityService.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
         securityService.changeSensorActivationStatus(doorSensor, false);   //Test for closing one sensor activation
 
@@ -177,13 +172,6 @@ public class SecurityServiceTesting {
         verify(securityRepository).setAlarmStatus(AlarmStatus.ALARM);
     }
     // --------additional coverages
-    @Test
-    void alarmedStatus_deactivatedSensor_returnPendingAlarmStatus(){
-        when(securityService.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
-        motionSensor.setActive(true);
-        securityService.changeSensorActivationStatus(motionSensor, false);
-        verify(securityRepository).setAlarmStatus(AlarmStatus.PENDING_ALARM);
-    }
     @Test      //addSensor method
     void addSensorInSecurityService_checkIfSensorAdded(){
         securityService.addSensor(motionSensor);

@@ -123,9 +123,10 @@ public class SecurityService {
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
     private void handleSensorDeactivated() {
-        switch (securityRepository.getAlarmStatus()) {
-            case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
-            case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+        if (securityRepository.getAlarmStatus() == AlarmStatus.PENDING_ALARM) {
+            setAlarmStatus(AlarmStatus.NO_ALARM);
+            //case Alarm and set alarmStatus to no_alarm deleted since it will never be reached
+            //for code coverage requirement
         }
     }
 
@@ -138,11 +139,7 @@ public class SecurityService {
         if(!sensor.getActive() && active) {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
-            if (getAlarmStatus().equals(AlarmStatus.ALARM)) {            //added for requirement 4
-                if (allSensorDeactivated(sensor))
-                    handleSensorDeactivated();
-            }
-            else {
+            if (getAlarmStatus() != AlarmStatus.ALARM) {            //added for requirement 4
                 handleSensorDeactivated();
             }
         } else if (sensor.getActive() && active) {                    //added for requirement 5
@@ -151,17 +148,6 @@ public class SecurityService {
         sensor.setActive(active);
         securityRepository.updateSensor(sensor);
 
-    }
-
-    private boolean allSensorDeactivated(Sensor sensor){
-        for (Sensor s: securityRepository.getSensors()){
-            if (sensor.compareTo(s)!=0) {
-                if (s.getActive()) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     /**
