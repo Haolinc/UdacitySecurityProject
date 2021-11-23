@@ -171,9 +171,9 @@ public class SecurityServiceTesting {
     //11  implemented in SecurityService
     @Test
     void armedHome_cameraShowsCat_returnAlarmedAlarmStatus(){
-        when(securityService.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
         when(imageService.imageContainsCat(eq(bufferedImage), anyFloat())).thenReturn(true);
         securityService.processImage(bufferedImage);
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         verify(securityRepository).setAlarmStatus(AlarmStatus.ALARM);
     }
     // --------additional coverages

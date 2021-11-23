@@ -36,18 +36,15 @@ public class SecurityService {
      * @param armingStatus
      */
     public void setArmingStatus(ArmingStatus armingStatus) {
+        if (hasCat && armingStatus == ArmingStatus.ARMED_HOME){
+            setAlarmStatus(AlarmStatus.ALARM);
+        }
         if(armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
         else if (getArmingStatus() == ArmingStatus.DISARMED) {
             if (armingStatus == ArmingStatus.ARMED_AWAY || armingStatus == ArmingStatus.ARMED_HOME) {   //added for requirement 10
-                if (hasCat) {
-                    securityRepository.setArmingStatus(armingStatus);       //added for requirement 11
-                    catDetected(hasCat);
-                    return;
-                }
                 deactivateAllSensor();
-
             }
         }
         securityRepository.setArmingStatus(armingStatus);
